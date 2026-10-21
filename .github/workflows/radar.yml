@@ -84,8 +84,8 @@ jobs:
           FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
           FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
           FEISHU_WRITE: "false"
-          FEISHU_SYNC_LIMIT: "3"
-        run: python sync_feishu.py
+          FEISHU_SYNC_LIMIT: "3"     
+        run: python sync_feishu_debug.py
 
       - name: Save the state
         if: always()
