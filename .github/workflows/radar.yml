@@ -76,6 +76,17 @@ jobs:
           fi
           if [ -f report.md ]; then cat report.md >> "$GITHUB_STEP_SUMMARY"; fi
 
+      - name: Preview Feishu sync
+        if: success()
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
+          FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
+          FEISHU_WRITE: "false"
+          FEISHU_SYNC_LIMIT: "3"
+        run: python sync_feishu.py
+
       - name: Save the state
         if: always()
         uses: actions/cache/save@v4
