@@ -1,0 +1,70 @@
+{
+  "leads": [
+    {
+      "term": "anatomy",
+      "kinds": [
+        "breakout"
+      ],
+      "signals": [
+        "GitHub 爆发 wheresryan22/anatomy ★17909(均 1386/天)"
+      ],
+      "examples": [
+        "wheresryan22/anatomy: An agent skill for creating detailed, interactive isometric illustrations of real-world machines and complex systems. Ge"
+      ],
+      "variants": [
+        "anatomy",
+        "wheresryan22 anatomy",
+        "ryan anatomy"
+      ],
+      "posts": [],
+      "repo": "wheresryan22/anatomy",
+      "known": "",
+      "format": "image",
+      "one_click": null
+    },
+    {
+      "term": "deepinfer",
+      "kinds": [
+        "breakout"
+      ],
+      "signals": [
+        "GitHub 爆发 deepseek-ai/DeepInfer ★15811(均 3149/天)"
+      ],
+      "examples": [
+        "deepseek-ai/DeepInfer: DeepInfer: High-performance, large-scale inference framework for DeepSeek models"
+      ],
+      "variants": [
+        "deepinfer",
+        "deepseek-ai deepinfer",
+        "deepseek deepinfer"
+      ],
+      "posts": [],
+      "repo": "deepseek-ai/DeepInfer",
+      "known": "",
+      "format": "text",
+      "one_click": null
+    },
+    {
+      "term": "solidcraft",
+      "kinds": [
+        "breakout"
+      ],
+      "signals": [
+        "GitHub 爆发 tangency-labs/solidcraft ★8490(均 626/天)"
+      ],
+      "examples": [
+        "tangency-labs/solidcraft: SolidCraft: an open-source parametric 3D CAD application built in pure Rust. Desktop, web, and automation through MCP."
+      ],
+      "variants": [
+        "solidcraft",
+        "tangency-labs solidcraft",
+        "tangency solidcraft"
+      ],
+      "posts": [],
+      "repo": "tangency-labs/solidcraft",
+      "known": "",
+      "format": "text",
+      "one_click": null
+    }
+  ]
+}
