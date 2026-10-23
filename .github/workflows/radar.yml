@@ -99,7 +99,7 @@ jobs:
           TREND_DB_PATH: state/trends.sqlite
           TREND_SUMMARY_PATH: trend_summary.json
           TREND_MAX_REPOS: "50"
-          TREND_FEISHU_WRITE: "false"
+          TREND_FEISHU_WRITE: "true"
           FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
           FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
