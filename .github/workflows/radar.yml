@@ -89,6 +89,22 @@ jobs:
           FEISHU_SYNC_LIMIT: "50"
           RADAR_REPORT_PATH: "report.json"
         run: python sync_feishu_expanded.py
+        
+      - name: Track GitHub Stars trends
+        if: success() && env.COMMAND == 'daily'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RADAR_REPORT_PATH: report.json
+          TREND_DB_PATH: state/trends.sqlite
+          TREND_SUMMARY_PATH: trend_summary.json
+          TREND_MAX_REPOS: "50"
+          TREND_FEISHU_WRITE: "false"
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
+          FEISHU_TREND_TABLE_ID: ${{ secrets.FEISHU_TREND_TABLE_ID }}
+        run: python trend_tracker.py
 
 
       - name: Save the state
