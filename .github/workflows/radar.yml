@@ -127,3 +127,13 @@ jobs:
             state/trends.sqlite
           if-no-files-found: ignore
           retention-days: 30
+
+ # 新增：为 SEO 自动化提供固定名称的报告
+      - name: Save radar report for SEO
+        if: success() && env.COMMAND == 'daily'
+        uses: actions/upload-artifact@v4
+        with:
+          name: radar-seo-input
+          path: report.json
+          if-no-files-found: warn
+          retention-days: 7
