@@ -76,16 +76,20 @@ jobs:
           fi
           if [ -f report.md ]; then cat report.md >> "$GITHUB_STEP_SUMMARY"; fi
 
-      - name: Preview Feishu sync
+
+      - name: Sync expanded AI Radar to Feishu
         if: success()
         env:
           FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
           FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
           FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
-          FEISHU_WRITE: "true"
-          FEISHU_SYNC_LIMIT: "50"  
-        run: python sync_feishu_debug.py
+          FEISHU_WRITE: "false"
+          FEISHU_UPDATE_EXISTING: "true"
+          FEISHU_SYNC_LIMIT: "50"
+          RADAR_REPORT_PATH: "report.json"
+        run: python sync_feishu_expanded.py
+
 
       - name: Save the state
         if: always()
