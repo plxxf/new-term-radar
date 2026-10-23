@@ -13,7 +13,7 @@ from pathlib import Path
 BASE='https://open.feishu.cn/open-apis'
 ALLOWED=('关键词','产品分类','月搜索量','SEO难度','增长趋势','商业潜力','机会评分','优先级','参考网站','状态')
 # Do not overwrite an analyst's manual workflow state, nor unset metrics.
-UPDATE_FIELDS=('产品分类','增长趋势','商业潜力','优先级','参考网站')
+UPDATE_FIELDS=('产品分类','月搜索量','SEO难度','增长趋势','商业潜力','机会评分','优先级','参考网站')
 
 def request(method,url,token=None,payload=None):
     raw=json.dumps(payload,ensure_ascii=False).encode() if payload is not None else None
@@ -83,7 +83,7 @@ def main():
             old=prior.get('fields') or {}
             changes={k:v for k,v in fields.items() if k in UPDATE_FIELDS and v!=old.get(k)}
             # Avoid overwriting manual editorial values in existing records.
-            changes={k:v for k,v in changes.items() if not text_value(old.get(k))}
+            changes={k:v for k,v in changes.items() if old.get(k) is None or old.get(k)=='' or (isinstance(old.get(k),list) and not old.get(k))}
             if not changes:unchanged+=1;continue
             if write:
                 rid=prior.get('record_id') or prior.get('id')
