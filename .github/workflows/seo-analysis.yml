@@ -59,7 +59,7 @@ jobs:
             exit 0
           fi
           # Default: every Monday Singapore time. Set to 1..7; no paid calls on other days.
-          if [[ "$(TZ=Asia/Singapore date +%u)" != '1' ]]; then
+          if [[ ! " 1 5 " =~ " $(TZ=Asia/Singapore date +%u) " ]]; then
             echo 'Not Monday in Singapore; skip weekly paid SEO analysis'
             echo 'ready=false' >> "$GITHUB_OUTPUT"
             exit 0
