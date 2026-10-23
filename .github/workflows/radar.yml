@@ -83,7 +83,7 @@ jobs:
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
           FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
           FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
-          FEISHU_WRITE: "false"
+          FEISHU_WRITE: "true"
           FEISHU_SYNC_LIMIT: "3"  
           RADAR_REPORT_PATH: "report_test_feishu.json"
         run: python sync_feishu_debug.py
