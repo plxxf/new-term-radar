@@ -55,7 +55,14 @@ def as_text(value):
 
 
 def metadata(repo, info):
-    fields = {'GitHub 仓库': repo, '项目链接': 'https://github.com/' + urllib.parse.quote(repo, safe='/')}
+    url = 'https://github.com/' + urllib.parse.quote(repo, safe='/')
+    fields = {
+        'GitHub 仓库': repo,
+        '项目链接': {
+            'text': repo,
+            'link': url
+        }
+    }
     description = str(info.get('description') or '').strip()
     if description:
         fields['项目简介'] = description
