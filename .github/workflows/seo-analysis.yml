@@ -83,12 +83,12 @@ jobs:
         if: ${{ steps.gate.outputs.ready == 'true' }}
         run: python seo_analyzer.py --input radar_input.json --output seo_report.json --limit 100
 
-      - name: Fetch real SEO metrics (PAID, at most 20 candidates)
+      - name: Fetch real SEO metrics (PAID, at most 25 candidates)
         if: ${{ steps.gate.outputs.ready == 'true' && (steps.gate.outputs.mode == 'automatic' || inputs.fetch_real_seo == true) }}
         env:
           DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
           DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
-        run: python enrich_seo_data.py --input seo_report.json --output seo_report.json --limit 20 --location 2840 --language en --live
+        run: python enrich_seo_data.py --input seo_report.json --output seo_report.json --limit 25 --location 2840 --language en --live
 
       - name: Sync SEO Feishu table
         if: ${{ steps.gate.outputs.ready == 'true' }}
