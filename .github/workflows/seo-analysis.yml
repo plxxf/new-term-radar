@@ -1,0 +1,41 @@
+name: SEO opportunity analysis (independent)
+on:
+  workflow_dispatch:
+    inputs:
+      source_report:
+        description: 'Path to an existing report JSON committed in repository'
+        required: true
+        default: 'report_test_feishu.json'
+      write_feishu:
+        description: 'Write to SEO table? Keep false for first run'
+        required: true
+        type: boolean
+        default: false
+jobs:
+  analyze-and-sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate SEO report
+        env:
+          SOURCE_REPORT: ${{ inputs.source_report }}
+        run: python seo_analyzer.py --input "$SOURCE_REPORT" --output seo_report.json --limit 50
+      - name: Sync SEO table
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
+          SEO_FEISHU_TABLE_ID: ${{ secrets.SEO_FEISHU_TABLE_ID }}
+          SEO_WRITE: ${{ inputs.write_feishu }}
+        run: python sync_seo_feishu.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: seo-report
+          path: seo_report.json
+          if-no-files-found: ignore
