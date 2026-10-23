@@ -29,13 +29,13 @@ jobs:
       - name: Generate SEO candidates
         env:
           SOURCE_REPORT: ${{ inputs.source_report }}
-        run: python seo_analyzer.py --input "$SOURCE_REPORT" --output seo_report.json --limit 50
+        run: python seo_analyzer.py --input "$SOURCE_REPORT" --output seo_report.json --limit 100
       - name: Fetch real SEO metrics (paid, opt-in)
         if: ${{ inputs.fetch_real_seo }}
         env:
           DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
           DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
-        run: python enrich_seo_data.py --input seo_report.json --output seo_report.json --limit 20 --location 2840 --language en --live
+        run: python enrich_seo_data.py --input seo_report.json --output seo_report.json --limit 50 --location 2840 --language en --live
       - name: Sync SEO Feishu table
         env:
           FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
