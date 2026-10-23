@@ -1,53 +1,110 @@
 name: SEO opportunity analysis (independent)
+
 on:
+  workflow_run:
+    workflows: ["New-term radar"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       source_report:
-        description: 'Existing report file in repository'
+        description: 'Repository JSON for manual test (when not using radar artifact)'
         required: true
         default: 'report_test_feishu.json'
       fetch_real_seo:
-        description: 'PAID DataForSEO API call (default OFF)'
+        description: 'PAID DataForSEO request'
         type: boolean
-        required: true
         default: false
       write_feishu:
-        description: 'Write records to SEO table (default OFF)'
+        description: 'Write to Feishu SEO table'
         type: boolean
-        required: true
         default: false
+
+concurrency:
+  group: seo-analysis-${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.run_id }}
+  cancel-in-progress: false
+
 jobs:
   seo:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Generate SEO candidates
+
+      - name: Decide if this run should do SEO
+        id: gate
         env:
+          GH_TOKEN: ${{ github.token }}
+          RADAR_RUN_ID: ${{ github.event.workflow_run.id }}
+          AUTO_SEO_ENABLED: ${{ vars.AUTO_SEO_ENABLED }}
           SOURCE_REPORT: ${{ inputs.source_report }}
-        run: python seo_analyzer.py --input "$SOURCE_REPORT" --output seo_report.json --limit 100
-      - name: Fetch real SEO metrics (paid, opt-in)
-        if: ${{ inputs.fetch_real_seo }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
+            test -f "$SOURCE_REPORT" || { echo "Missing source report: $SOURCE_REPORT"; exit 1; }
+            cp "$SOURCE_REPORT" radar_input.json
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+            echo 'mode=manual' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$AUTO_SEO_ENABLED" != 'true' ]]; then
+            echo 'AUTO_SEO_ENABLED not true; skip automatic run'
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Default: every Monday Singapore time. Set to 1..7; no paid calls on other days.
+          if [[ "$(TZ=Asia/Singapore date +%u)" != '1' ]]; then
+            echo 'Not Monday in Singapore; skip weekly paid SEO analysis'
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          COUNT=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RADAR_RUN_ID}/artifacts" \
+            --jq '[.artifacts[] | select(.name == "radar-seo-input" and .expired == false)] | length')
+          if [[ "$COUNT" == '0' ]]; then
+            echo 'This radar run has no report artifact (likely a sources-only run); skip'
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          mkdir -p incoming
+          gh run download "$RADAR_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            -n radar-seo-input -D incoming
+          test -s incoming/report.json || { echo 'Artifact missing report.json'; exit 1; }
+          cp incoming/report.json radar_input.json
+          echo 'ready=true' >> "$GITHUB_OUTPUT"
+          echo 'mode=automatic' >> "$GITHUB_OUTPUT"
+
+      - name: Generate SEO candidates
+        if: ${{ steps.gate.outputs.ready == 'true' }}
+        run: python seo_analyzer.py --input radar_input.json --output seo_report.json --limit 100
+
+      - name: Fetch real SEO metrics (PAID, at most 20 candidates)
+        if: ${{ steps.gate.outputs.ready == 'true' && (steps.gate.outputs.mode == 'automatic' || inputs.fetch_real_seo == true) }}
         env:
           DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
           DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
-        run: python enrich_seo_data.py --input seo_report.json --output seo_report.json --limit 50 --location 2840 --language en --live
+        run: python enrich_seo_data.py --input seo_report.json --output seo_report.json --limit 20 --location 2840 --language en --live
+
       - name: Sync SEO Feishu table
+        if: ${{ steps.gate.outputs.ready == 'true' }}
         env:
           FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
           FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
           SEO_FEISHU_TABLE_ID: ${{ secrets.SEO_FEISHU_TABLE_ID }}
-          SEO_WRITE: ${{ inputs.write_feishu }}
+          SEO_WRITE: ${{ steps.gate.outputs.mode == 'automatic' || inputs.write_feishu == true }}
         run: python sync_seo_feishu.py
-      - name: Upload report for inspection
-        if: always()
+
+      - name: Upload SEO report for inspection
+        if: ${{ always() && steps.gate.outputs.ready == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: seo-report
           path: seo_report.json
           if-no-files-found: ignore
+          retention-days: 14
