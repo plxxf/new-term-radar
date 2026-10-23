@@ -137,15 +137,22 @@ def existing_records(endpoint, token):
         if not page_token:
             raise RuntimeError('Missing page_token despite has_more=true')
 
-
 def same(a, b):
+    if isinstance(b, dict):
+        if isinstance(a, dict):
+            return (
+                as_text(a) == as_text(b)
+                and str(a.get('link') or '') == str(b.get('link') or '')
+            )
+        return as_text(a) == str(b.get('link') or '')
+
     if isinstance(b, (int, float)) and not isinstance(b, bool):
         try:
             return float(a) == float(b)
         except (ValueError, TypeError):
             return False
-    return as_text(a) == str(b)
 
+    return as_text(a) == str(b)
 
 def main():
     path = Path(os.getenv('RADAR_REPORT_PATH', 'report.json'))
