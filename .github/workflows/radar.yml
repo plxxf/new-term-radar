@@ -123,5 +123,7 @@ jobs:
             report.md
             report.json
             state/radar.db
+            trend_summary.json
+            state/trends.sqlite
           if-no-files-found: ignore
           retention-days: 30
