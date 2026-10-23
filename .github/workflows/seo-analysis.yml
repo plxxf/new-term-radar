@@ -3,16 +3,21 @@ on:
   workflow_dispatch:
     inputs:
       source_report:
-        description: 'Path to an existing report JSON committed in repository'
+        description: 'Existing report file in repository'
         required: true
         default: 'report_test_feishu.json'
-      write_feishu:
-        description: 'Write to SEO table? Keep false for first run'
-        required: true
+      fetch_real_seo:
+        description: 'PAID DataForSEO API call (default OFF)'
         type: boolean
+        required: true
+        default: false
+      write_feishu:
+        description: 'Write records to SEO table (default OFF)'
+        type: boolean
+        required: true
         default: false
 jobs:
-  analyze-and-sync:
+  seo:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,11 +26,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Generate SEO report
+      - name: Generate SEO candidates
         env:
           SOURCE_REPORT: ${{ inputs.source_report }}
         run: python seo_analyzer.py --input "$SOURCE_REPORT" --output seo_report.json --limit 50
-      - name: Sync SEO table
+      - name: Fetch real SEO metrics (paid, opt-in)
+        if: ${{ inputs.fetch_real_seo }}
+        env:
+          DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
+          DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
+        run: python enrich_seo_data.py --input seo_report.json --output seo_report.json --limit 20 --location 2840 --language en --live
+      - name: Sync SEO Feishu table
         env:
           FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
@@ -33,8 +44,9 @@ jobs:
           SEO_FEISHU_TABLE_ID: ${{ secrets.SEO_FEISHU_TABLE_ID }}
           SEO_WRITE: ${{ inputs.write_feishu }}
         run: python sync_seo_feishu.py
-      - uses: actions/upload-artifact@v4
+      - name: Upload report for inspection
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: seo-report
           path: seo_report.json
